@@ -1,0 +1,29 @@
+{
+  "name": "functions",
+  "scripts": {
+    "lint": "tslint --project tsconfig.json",
+    "build": "tsc",
+    "serve": "npm run build && firebase serve --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "test-email": "tsc ./tests/email.ts && node ./tests/email.js"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "firebase-admin": "^6.5.0",
+    "firebase-functions": "^2.1.0",
+    "pug": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/pug": "^2.0.4",
+    "preview-email": "^0.0.10",
+    "tslint": "~5.8.0",
+    "typescript": "^3.2.2"
+  },
+  "private": true
+}
