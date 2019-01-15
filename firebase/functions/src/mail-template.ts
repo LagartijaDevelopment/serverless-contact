@@ -1,8 +1,8 @@
 export const template: string = `
 ul
-    each value, input in data
+    each field in fields
         li
             span
-                b= \`\${input}: \`
-                span= value
+                b= \`\${field}: \`
+                span= \`{{\${field}}}\`
 `;
