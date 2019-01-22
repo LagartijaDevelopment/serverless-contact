@@ -6,7 +6,10 @@ import * as mail from '@sendgrid/mail';
 import * as pug from 'pug';
 import { template } from './mail-template';
 
-mail.setApiKey(functions.config().sendgrid.key);
+const isProduction = functions.config().config.env === 'production';
+if (isProduction) {
+    mail.setApiKey(functions.config().sendgrid.key);
+}
 admin.initializeApp();
 const db = admin.firestore();
 
@@ -24,7 +27,7 @@ main.use(async function (req, res, next) {
 });
 
 main.post('/:to', async (req, res) => {
-    const to = await db.collection('recipients').doc(req.params.to).get();
+    const to = await db.collection('receivers').doc(req.params.to).get();
     const mailData: any = {
         to: to.data(),
         from: {
@@ -45,14 +48,45 @@ main.post('/:to', async (req, res) => {
         respond(422, { error: 'Email address is required.' });
         return;
     }
-    await mail.send(mailData, false, function (error, data) {
+    if (!mailData.to) {
+        respond(404, { error: 'Receiver not found.' });
+        return;
+    }
+    await sendEmail(mailData, false, function (error, statusCode) {
         if (error) {
             respond(500, { error })
         } else {
-            respond(data[0].statusCode)
+            respond(statusCode)
         }
     });
 });
+
+async function sendEmail(
+    data: any,
+    isMultiple?: boolean,
+    cb?: (error: any, statusCode?: number) => void
+): Promise<any> {
+    if (isProduction) {
+        return mail.send(data, isMultiple, (error, response) => {
+            if (error) {
+                cb(error, 500);
+            } else {
+                cb(null, response[0].statusCode);
+            }
+        });
+    }
+    return new Promise((resolve, reject) => {
+        db.collection('messages')
+            .add(data)
+            .then(() => {
+                cb(null, 202);
+                resolve();
+            }, (reason) => {
+                cb(reason);
+                reject();
+            })
+    });
+}
 
 async function validateOrigin(testOrigin) {
     const sites = await db.collection('sites').get();

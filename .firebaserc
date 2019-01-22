@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "staging": "serverless-contact-staging",
+    "production": "serverless-contact-3b082"
+  }
+}
